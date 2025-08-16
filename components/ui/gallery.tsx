@@ -4,7 +4,8 @@ import { Ref, forwardRef, useState, useEffect } from "react";
 import { motion, useMotionValue } from "framer-motion";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+
+type Direction = "left" | "right";
 
 export const PhotoGallery = ({
   animationDelay = 0.5,
@@ -13,26 +14,48 @@ export const PhotoGallery = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+
+  // Multiple backdrop videos
+  const backdropVideos = [
+    "/assets/backdrop.mp4",
+    "/assets/backdrop-3.mp4",
+    "/assets/backdrop-4.mp4"
+  ];
 
   useEffect(() => {
-    // First make the container visible with a fade-in
+    // Initial loading animation
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Show loading for 2 seconds
+
+    // Then make the container visible with a fade-in
     const visibilityTimer = setTimeout(() => {
       setIsVisible(true);
-    }, animationDelay * 1000);
+    }, (animationDelay + 2) * 1000);
 
-    // Then start the photo animations after a short delay
+    // Finally start the photo animations
     const animationTimer = setTimeout(
       () => {
         setIsLoaded(true);
       },
-      (animationDelay + 0.4) * 1000
-    ); // Add 0.4s for the opacity transition
+      (animationDelay + 2.4) * 1000
+    );
 
     return () => {
+      clearTimeout(loadingTimer);
       clearTimeout(visibilityTimer);
       clearTimeout(animationTimer);
     };
   }, [animationDelay]);
+
+  // Function to cycle through videos
+  const handleVideoEnd = () => {
+    setCurrentVideoIndex((prevIndex) => 
+      (prevIndex + 1) % backdropVideos.length
+    );
+  };
 
   // Animation variants for the container
   const containerVariants = {
@@ -46,6 +69,31 @@ export const PhotoGallery = ({
     },
   };
 
+  // Loading animation variants for circular motion
+  const loadingVariants = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: (custom: { order: number }) => ({
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.3,
+        delay: custom.order * 0.1,
+      },
+    }),
+    loading: (custom: { order: number }) => ({
+      x: Math.cos((custom.order * 72) * (Math.PI / 180)) * 150,
+      y: Math.sin((custom.order * 72) * (Math.PI / 180)) * 150,
+      rotate: custom.order * 72,
+      scale: 0.8,
+      transition: {
+        duration: 3,
+        ease: "easeInOut",
+        repeat: Infinity,
+        repeatType: "loop" as const,
+      },
+    }),
+  };
+
   // Animation variants for each photo
   const photoVariants = {
     hidden: () => ({
@@ -53,19 +101,18 @@ export const PhotoGallery = ({
       y: 0,
       rotate: 0,
       scale: 1,
-      // Keep the same z-index throughout animation
     }),
     visible: (custom: { x: any; y: any; order: number }) => ({
       x: custom.x,
       y: custom.y,
-      rotate: 0, // No rotation
+      rotate: 0,
       scale: 1,
       transition: {
         type: "spring",
         stiffness: 70,
         damping: 12,
         mass: 1,
-        delay: custom.order * 0.15, // Explicit delay based on order
+        delay: custom.order * 0.15,
       },
     }),
   };
@@ -129,14 +176,25 @@ export const PhotoGallery = ({
       {/* Video Background */}
       <div className="absolute inset-0 -z-20 overflow-hidden">
         <video
+          key={backdropVideos[currentVideoIndex]}
           autoPlay
-          loop
           muted
           playsInline
           className="h-full w-full object-cover opacity-50"
-          style={{ opacity: 0.5 }}
+          style={{ 
+            opacity: 0.5,
+            objectFit: 'cover',
+            objectPosition: 'center'
+          }}
+          onEnded={handleVideoEnd}
+          onError={() => {
+            // If video fails, move to next one
+            setCurrentVideoIndex((prevIndex) => 
+              (prevIndex + 1) % backdropVideos.length
+            );
+          }}
         >
-          <source src="/assets/backdrop.mp4" type="video/mp4" />
+          <source src={backdropVideos[currentVideoIndex]} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </div>
@@ -144,17 +202,49 @@ export const PhotoGallery = ({
       {/* Black Overlay Layer */}
       <div className="absolute inset-0 -z-15 bg-black opacity-50"></div>
       
+
+      
       {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 max-md:hidden top-[200px] -z-10 h-[300px] w-full bg-transparent bg-[linear-gradient(to_right,#57534e_1px,transparent_1px),linear-gradient(to_bottom,#57534e_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-20 [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] dark:bg-[linear-gradient(to_right,#a8a29e_1px,transparent_1px),linear-gradient(to_bottom,#a8a29e_1px,transparent_1px)]"></div>
       
+             {/* Loading Animation Overlay */}
+       {isLoading && (
+         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80">
+           <div className="relative h-[400px] w-[400px]">
+             {/* Circular loading photos */}
+             {photos.map((photo) => (
+               <motion.div
+                 key={photo.id}
+                 className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2"
+                 variants={loadingVariants}
+                 initial="hidden"
+                 animate="loading"
+                 custom={{ order: photo.order }}
+               >
+                 <motion.div 
+                   className="h-full w-full overflow-hidden rounded-3xl shadow-lg border-2 border-white/20"
+                   animate={{ rotate: [0, 360] }}
+                   transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                 >
+                   <img
+                     src={photo.src}
+                     alt={photo.alt}
+                     className="h-full w-full object-cover"
+                     draggable={false}
+                   />
+                 </motion.div>
+               </motion.div>
+             ))}
+           </div>
+         </div>
+       )}
+
       {/* Content Container */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20">
         <p className="lg:text-md my-2 text-center text-xs font-light uppercase tracking-widest text-slate-300">
         A Journey Through Visual Stories
         </p>
-        <h3 className="z-20 mx-auto max-w-2xl justify-center bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100 bg-clip-text py-3 text-center text-4xl text-transparent dark:bg-gradient-to-r dark:from-slate-100 dark:via-slate-200 dark:to-slate-100 dark:bg-clip-text md:text-7xl">
-          Welcome to My <span className="text-rose-500"> Stories</span>
-        </h3>
+
         <div className="relative mb-8 h-[350px] w-full items-center justify-center lg:flex">
           <motion.div
             className="relative mx-auto flex w-full max-w-7xl justify-center"
@@ -195,11 +285,6 @@ export const PhotoGallery = ({
             </motion.div>
           </motion.div>
         </div>
-        <div className="flex w-full justify-center">
-          <Button>
-            View All Stories
-          </Button>
-        </div>
       </div>
     </div>
   );
@@ -220,8 +305,6 @@ const MotionImage = motion(
     return <img ref={ref} {...props} />;
   })
 );
-
-type Direction = "left" | "right";
 
 export const Photo = ({
   src,
