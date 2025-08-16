@@ -1,0 +1,58 @@
+{
+  "gallery": [
+    {
+      "id": 1,
+      "name": "mountain-adventure",
+      "src": "/assets/3.jpg",
+      "alt": "Young man with climbing gear on mountain ledge",
+      "category": "adventure",
+      "tags": ["climbing", "mountain", "adventure", "outdoor"],
+      "formats": ["jpeg"]
+    },
+    {
+      "id": 2,
+      "name": "winter-mountains",
+      "src": "/assets/1 (2).jpg",
+      "alt": "Man in winter gear with snow-capped mountains",
+      "category": "winter",
+      "tags": ["winter", "mountains", "snow", "outdoor"],
+      "formats": ["jpeg"]
+    },
+    {
+      "id": 3,
+      "name": "yellow-flowers",
+      "src": "/assets/yellow-flowers.jpg",
+      "alt": "Man with climbing gear surrounded by yellow flowers",
+      "category": "nature",
+      "tags": ["flowers", "climbing", "nature", "outdoor"],
+      "formats": ["jpeg"]
+    },
+    {
+      "id": 4,
+      "name": "city-street",
+      "src": "/assets/2 (2).jpg",
+      "alt": "Friends around black taxi on city street",
+      "category": "urban",
+      "tags": ["city", "friends", "taxi", "urban"],
+      "formats": ["jpeg"]
+    },
+    {
+      "id": 5,
+      "name": "valley-climbing",
+      "src": "/assets/5.jpg",
+      "alt": "Climber on rocky ledge overlooking deep valley",
+      "category": "climbing",
+      "tags": ["climbing", "valley", "rocks", "adventure"],
+      "formats": ["jpeg"]
+    }
+  ],
+  "categories": [
+    "adventure",
+    "winter", 
+    "nature",
+    "urban",
+    "climbing"
+  ],
+  "supportedFormats": ["jpeg"],
+  "defaultFormat": "jpeg"
+}
