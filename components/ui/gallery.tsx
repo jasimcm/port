@@ -241,9 +241,7 @@ export const PhotoGallery = ({
 
       {/* Content Container */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20">
-        <p className="lg:text-md my-2 text-center text-xs font-light uppercase tracking-widest text-slate-300">
-        A Journey Through Visual Stories
-        </p>
+
 
         <div className="relative mb-8 h-[350px] w-full items-center justify-center lg:flex">
           <motion.div
